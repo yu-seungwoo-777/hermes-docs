@@ -1,4 +1,4 @@
-# hermes-docs — Hermes 부대 문서·산출물 공용 저장소
+﻿# hermes-docs — Hermes 부대 문서·산출물 공용 저장소
 
 서버 `/root/reports/`와 직결된 프라이빗 문서 공간. 생성된 보고서·설계 산출물·사고 기록을
 GitHub에서 열람·추적하기 위한 단일 저장소다.
