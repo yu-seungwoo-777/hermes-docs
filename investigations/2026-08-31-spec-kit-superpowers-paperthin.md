@@ -135,4 +135,33 @@ Jesse Vincent(obra)가 만든 코딩 에이전트용 **"완전한 소프트웨�
 
 ---
 
+## 부록: 3개 동시 사용 시 충돌 분석
+
+결론부터: **3개를 동시에 전부 활성화하면 충돌이 발생한다.** 조사 결과를 근거로 문제 지점은 다음 4가지다.
+
+### 충돌 1. 트리거 충돌 (가장 심각)
+- superpowers의 부트스트랩(`using-superpowers`)은 "적용 가능성 1%라도 반드시 스킬 호출"을 강제 주입한다. 그런데 paperthin의 model-invoked 스킬들, superpowers의 13개 스킬, spec-kit의 `/speckit-*` 커맨드가 **같은 상황을 겨냥**한다 — 계획 세우기 한 상황에 superpowers `writing-plans`와 spec-kit `/speckit-plan`, paperthin `re0`까지 동시 후보로 뜰 수 있다.
+- 우선순위 규칙끼리도 겹친다: superpowers는 "사용자 지시 > 스킬 > 기본동작"을 주입하고, spec-kit은 워크플로우 엔진이 단계 순서를 강제한다 — 두 "강제 장치"가 서로를 방해한다.
+
+### 충돌 2. 아티팩트·브랜치 충돌
+- spec-kit은 `create-new-feature.sh`로 브랜치를 만들고 `specs/<NNN>-<name>/`에 산출물을 둔다. superpowers는 `using-git-worktrees`로 자기 방식의 워크트리 + `docs/superpowers/plans/`를 만든다. **두 갈래 브랜치/계획 체계가 병렬로 생기고, 둘 다 "정답 워크플로우"라고 주장**한다.
+
+### 충돌 3. 철학 충돌 (축적 vs 제거)
+- paperthin `re0`는 "패치 대신 v0 재작성", `debloat`는 산물 압축인데, spec-kit/superpowers는 스펙·계획·리뷰 문서를 계속 **축적**하는 구조다. re0가 다른 체계가 만든 산물(설계 문서, tasks.md)을 "정리" 명분으로 재작성할 위험이 있다.
+
+### 충돌 4. 컨텍스트 예산
+- 세션 시작 주입이 2겹(superpowers 부트스트랩 + paperthin 발견 알림 훅) + 스킬 description 수십 개 상주 + 프로젝트별 `/speckit-*` 10개. 스킬이 많을수록 모델의 트리거 판단 정확도가 떨어진다.
+
+### 현실적인 조합 전략
+
+| 층위 | 전략 |
+|---|---|
+| **방법론 레이어는 1개만** | superpowers 또는 spec-kit 중 **택일**. 공존 비추천 |
+| **paperthin은 선별 + user-invoked만** | `re0`, `dedash` 등 12개 user-invoked 스킬만 `-s <skill>`로 설치 — 자동 트리거 자체가 없어 충돌 원천 차단 (`re0-upgrade` 자동 스타 스킬은 제외) |
+| **프로젝트 단위 분리** | 신규 기능 개발(스펙 필요) 프로젝트에 spec-kit, 기존 코드 정비·리팩터링에 superpowers 스킬 — 저장소별로 설정 |
+
+즉 "3개 다"가 아니라 **"역할별로 1+α"**가 답이다: 방법론 1개(강제력 있는 것) + paperthin은 손으로만 부르는 정제 도구로 취급. 특히 spec-kit과 superpowers의 계획/태스크 단계가 겹치는 것은 구조적이라, 함께 켜는 순간 어느 쪽 워크플로우를 따를지 모델이 매번 판단하게 된다.
+
+---
+
 *조사: agentarch 프로필 — 3개 독립 서브에이전트 병렬 심층 조사(소스 클론 + CLI 실행 검증 + GitHub API 실측), 2026-08-31.*
