@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>mailto 동작 점검</title>
+<style>
+  :root { --bg:#0f1115; --card:#1a1d24; --line:#2a2e38; --fg:#e8eaf0; --dim:#9aa0ad; --acc:#4f8cff; --ok:#3fb96f; --part:#e0a63a; --no:#e05c5c; }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body { margin:0; padding:0; background:var(--bg); color:var(--fg); font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans KR",sans-serif; }
+  body { padding:16px 16px 140px; }
+  h1 { font-size:1.25rem; margin:0 0 4px; }
+  h2 { font-size:1.05rem; margin:28px 0 8px; padding-bottom:6px; border-bottom:1px solid var(--line); }
+  .sub { color:var(--dim); font-size:.82rem; margin-bottom:14px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:12px; margin:8px 0; }
+  .kv { display:flex; gap:8px; font-size:.85rem; padding:3px 0; word-break:break-all; }
+  .kv b { min-width:130px; color:var(--dim); font-weight:600; flex-shrink:0; }
+  input[type=text] { width:100%; padding:10px 12px; font-size:1rem; background:var(--bg); color:var(--fg); border:1px solid var(--line); border-radius:8px; }
+  input[type=text]:focus { outline:2px solid var(--acc); outline-offset:1px; }
+  button { font:inherit; padding:10px 14px; border-radius:8px; border:1px solid var(--line); background:#232833; color:var(--fg); cursor:pointer; margin:4px 6px 4px 0; }
+  button:focus-visible { outline:2px solid var(--acc); outline-offset:2px; }
+  button:active { transform:none; }
+  .run { background:var(--acc); border-color:var(--acc); color:#fff; font-weight:600; }
+  .row { display:flex; align-items:flex-start; gap:8px; flex-wrap:wrap; }
+  .tinfo { flex:1 1 240px; font-size:.82rem; color:var(--dim); margin:6px 0; }
+  .result { display:inline-flex; gap:0; margin:6px 0; }
+  .result button { margin:0; border-radius:0; font-size:.85rem; padding:6px 10px; opacity:.55; }
+  .result button:first-child { border-radius:8px 0 0 8px; }
+  .result button:last-child { border-radius:0 8px 8px 0; }
+  .result button.on-ok { background:var(--ok); border-color:var(--ok); color:#fff; opacity:1; }
+  .result button.on-part { background:var(--part); border-color:var(--part); color:#fff; opacity:1; }
+  .result button.on-no { background:var(--no); border-color:var(--no); color:#fff; opacity:1; }
+  textarea { width:100%; min-height:44px; padding:8px 10px; font-size:.85rem; background:var(--bg); color:var(--fg); border:1px solid var(--line); border-radius:8px; resize:vertical; }
+  textarea:focus { outline:2px solid var(--acc); outline-offset:1px; }
+  .note { font-size:.8rem; color:var(--dim); margin-top:6px; }
+  .err { color:var(--no); font-size:.82rem; white-space:pre-wrap; word-break:break-all; margin-top:6px; }
+  .lenrow { display:flex; gap:6px; flex-wrap:wrap; }
+  .lenrow button { flex:1 1 80px; }
+  .fixed { position:fixed; left:0; right:0; bottom:0; background:#14171d; border-top:1px solid var(--line); padding:10px 16px; z-index:10; }
+  .fixed .kv { font-size:.75rem; }
+  .fixed button { width:100%; margin:6px 0 0; background:var(--ok); border-color:var(--ok); color:#fff; font-weight:700; }
+  .toast { position:fixed; top:12px; left:50%; transform:translateX(-50%); background:var(--ok); color:#fff; padding:8px 18px; border-radius:20px; font-size:.85rem; z-index:20; transition:opacity .3s; }
+  @media (prefers-reduced-motion: reduce) { .toast { transition:none; } * { animation:none !important; } }
+</style>
+</head>
+<body>
+<h1>mailto 동작 점검</h1>
+<div class="sub">기기·브라우저별 mailto 링크 실동작 확인용 — 각 테스트 실행 후 메일앱이 열리는지, 본문이 온전한지 확인하고 결과를 기록하세요.</div>
+
+<h2>현재 환경</h2>
+<div class="card" id="env"></div>
+
+<h2>받는 주소</h2>
+<div class="card">
+  <input type="text" id="to" value="test@example.com" inputmode="email" autocomplete="off" aria-label="받는 주소">
+  <div class="note">아래 모든 테스트에 이 주소가 사용됩니다.</div>
+</div>
+
+<h2>기본 동작</h2>
+
+<div class="card">
+  <div class="row"><button class="run" data-t="t1">T1 실행</button>
+    <div class="result" data-r="t1"><button data-v="됨">됨</button><button data-v="부분">부분</button><button data-v="안됨">안됨</button></div>
+  </div>
+  <div class="tinfo">mailto:주소 만 호출 — 메일 작성창이 열리는가, 어떤 앱이 뜨는가(메일앱/웹메일/아무반응없음)</div>
+  <textarea placeholder="메모: 어떤 앱이 떴는지" data-m="t1" aria-label="T1 메모"></textarea>
+</div>
+
+<div class="card">
+  <div class="row"><button class="run" data-t="t2">T2 실행</button>
+    <div class="result" data-r="t2"><button data-v="됨">됨</button><button data-v="부분">부분</button><button data-v="안됨">안됨</button></div>
+  </div>
+  <div class="tinfo">주소+제목+본문(여러 줄, 본문에 URL 포함). 줄바꿈은 <code>%0D%0A</code>. 제목·본문이 제대로 채워지는지 확인</div>
+  <textarea placeholder="메모: 제목/본문 채움 여부" data-m="t2" aria-label="T2 메모"></textarea>
+</div>
+
+<div class="card">
+  <div class="row"><button class="run" data-t="t3">T3 실행</button>
+    <div class="result" data-r="t3"><button data-v="됨">됨</button><button data-v="부분">부분</button><button data-v="안됨">안됨</button></div>
+  </div>
+  <div class="tinfo">T2와 동일하나 줄바꿈을 <code>%0A</code>만 사용 — 줄이 한 줄로 뭉치는지 T2와 비교</div>
+  <textarea placeholder="메모: 줄바꿈 유지 여부" data-m="t3" aria-label="T3 메모"></textarea>
+</div>
+
+<div class="card">
+  <div class="row"><button class="run" data-t="t4">T4 실행</button>
+    <div class="result" data-r="t4"><button data-v="됨">됨</button><button data-v="부분">부분</button><button data-v="안됨">안됨</button></div>
+  </div>
+  <div class="tinfo">bcc 파라미터 포함 — bcc 주소가 무시되는 클라이언트인지 확인(전송 전 bcc 필드 확인)</div>
+  <textarea placeholder="메모: bcc 반영 여부" data-m="t4" aria-label="T4 메모"></textarea>
+</div>
+
+<h2>본문 길이 한계</h2>
+<div class="card">
+  <div class="tinfo">각 길이의 본문을 넣어 열어봅니다. 본문 맨 끝에 <b>[END]</b> 표시 — 메일앱에서 [END]가 보이면 잘리지 않은 것.</div>
+  <div class="lenrow">
+    <button class="run" data-t="len500">500자</button>
+    <button class="run" data-t="len1000">1,000자</button>
+    <button class="run" data-t="len2000">2,000자</button>
+    <button class="run" data-t="len4000">4,000자</button>
+  </div>
+  <div class="result" data-r="len"><button data-v="됨">전체 OK</button><button data-v="부분">일부 잘림</button><button data-v="안됨">안열림</button></div>
+  <textarea placeholder="메모: 몇 자까지 OK였는지, [END] 보임 여부" data-m="len" aria-label="길이 테스트 메모"></textarea>
+</div>
+
+<h2>웹메일 대체 경로</h2>
+
+<div class="card">
+  <div class="row"><button class="run" data-t="gmail">Gmail 웹</button>
+    <div class="result" data-r="gmail"><button data-v="됨">됨</button><button data-v="부분">부분</button><button data-v="안됨">안됨</button></div>
+  </div>
+  <div class="tinfo">mail.google.com 컴포즈 딥링크 — 받는주소·제목·본문이 채워진 작성창이 열리는지</div>
+  <textarea placeholder="메모" data-m="gmail" aria-label="Gmail 메모"></textarea>
+</div>
+
+<div class="card">
+  <div class="row"><button class="run" data-t="outlook">Outlook 웹</button>
+    <div class="result" data-r="outlook"><button data-v="됨">됨</button><button data-v="부분">부분</button><button data-v="안됨">안됨</button></div>
+  </div>
+  <div class="tinfo">outlook.office.com/mail/deeplink/compose — 로그인 상태여야 작성창 확인 가능</div>
+  <textarea placeholder="메모" data-m="outlook" aria-label="Outlook 메모"></textarea>
+</div>
+
+<div class="card">
+  <div class="row"><button class="run" data-t="naver">네이버 메일</button>
+    <div class="result" data-r="naver"><button data-v="됨">됨</button><button data-v="부분">부분</button><button data-v="안됨">안됨</button></div>
+  </div>
+  <div class="tinfo">네이버 메일 작성 화면 — 앱 설치 시 앱 연결, 미설치 시 웹 메일로 열림</div>
+  <textarea placeholder="메모: 앱/웹 어디로 열렸는지" data-m="naver" aria-label="네이버 메모"></textarea>
+</div>
+
+<h2>클립보드 방식</h2>
+
+<div class="card">
+  <div class="row"><button class="run" data-t="cptext">텍스트 복사</button></div>
+  <div class="tinfo">navigator.clipboard.writeText — 붙여넣어 확인: "클립보드 텍스트 복사 성공" 이어야 함</div>
+  <div class="err" data-e="cptext"></div>
+  <div class="result" data-r="cptext"><button data-v="됨">됨</button><button data-v="부분">부분</button><button data-v="안됨">안됨</button></div>
+  <textarea placeholder="메모" data-m="cptext" aria-label="텍스트 복사 메모"></textarea>
+</div>
+
+<div class="card">
+  <div class="row"><button class="run" data-t="cphtml">이미지+HTML 복사</button></div>
+  <div class="tinfo">ClipboardItem에 text/html + text/plain 동시 투입 (img는 공개 https URL) — 메일 앱·문서에 붙여넣어 이미지가 보이는지 확인. 미지원 브라우저는 아래에 에러가 표시됨.</div>
+  <div class="err" data-e="cphtml"></div>
+  <div class="result" data-r="cphtml"><button data-v="됨">됨</button><button data-v="부분">부분</button><button data-v="안됨">안됨</button></div>
+  <textarea placeholder="메모: 어디에 붙여넣었는지, 이미지 보임 여부" data-m="cphtml" aria-label="HTML 복사 메모"></textarea>
+</div>
+
+<div class="fixed">
+  <div class="kv"><b id="f-env"></b></div>
+  <button id="copyall">전체 결과 마크다운 복사</button>
+</div>
+
+<script>
+(function(){
+"use strict";
+var state = {}; // t -> {v: 결과, m: 메모} — 메모는 textarea 값에서 직접 읽음
+
+// ── 환경 정보 ───────────────────────────────────────────────
+function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+var ua = navigator.userAgent || "";
+var platform = navigator.platform || "(unknown)";
+var secure = window.isSecureContext;
+var proto = location.protocol;
+var clipSupport = !!(navigator.clipboard && window.ClipboardItem);
+var envLines = [
+  ["protocol", proto],
+  ["isSecureContext", secure ? "true" : "false (⚠ 컨텍스트 불안전)"],
+  ["화면", window.innerWidth + "×" + window.innerHeight + " @dpr " + (window.devicePixelRatio||1)],
+  ["platform", platform],
+  ["clipboard/ClipboardItem", clipSupport ? "지원" : "미지원"],
+  ["userAgent", ua]
+];
+var envHtml = "";
+for (var i=0;i<envLines.length;i++){
+  envHtml += '<div class="kv"><b>'+esc(envLines[i][0])+'</b><span>'+esc(envLines[i][1])+'</span></div>';
+}
+document.getElementById("env").innerHTML = envHtml;
+document.getElementById("f-env").textContent = proto.replace(":","")+" | "+platform+" | "+ (ua.match(/(iPhone|iPad|Android|Windows|Macintosh)/)||["?"])[0];
+
+// ── mailto 생성 ─────────────────────────────────────────────
+function toAddr(){ return document.getElementById("to").value.trim() || "test@example.com"; }
+function nl(s){ return s.replace(/\n/g, "\r\n"); }
+function mailto(params, encodeNewline){
+  // params: {subject, body, cc, bcc}
+  var parts = [];
+  if (params.subject != null) parts.push("subject=" + encodeURIComponent(params.subject));
+  if (params.body != null) parts.push("body=" + encodeURIComponent(encodeNewline ? params.body : nl(params.body)));
+  if (params.cc) parts.push("cc=" + encodeURIComponent(params.cc));
+  if (params.bcc) parts.push("bcc=" + encodeURIComponent(params.bcc));
+  return "mailto:" + toAddr() + (parts.length ? "?" + parts.join("&") : "");
+}
+function go(href){
+  // mailto는 현재 탭에서만 안전 — location.href 방식 (iOS에서 window.open 새탭 차단 회피)
+  window.location.href = href;
+}
+
+// ── 결과 기록 UI ─────────────────────────────────────────────
+document.addEventListener("click", function(e){
+  var b = e.target.closest(".result button");
+  if (!b) return;
+  var wrap = b.parentElement;
+  var key = wrap.getAttribute("data-r");
+  var v = b.getAttribute("data-v");
+  wrap.querySelectorAll("button").forEach(function(x){ x.className = x===b ? "on-"+(v==="됨"?"ok":v==="부분"?"part":"no") : ""; });
+  state[key] = state[key] || {};
+  state[key].v = v;
+});
+
+// ── 테스트 정의 ──────────────────────────────────────────────
+var body2 = "안녕하세요,\n\nmailto 본문 테스트입니다.\n여러 줄이 정상 유지되는지 확인해 주세요.\n\n참고 URL: https://example.com/page?src=mailto\n\n감사합니다.";
+var body3 = body2;
+
+var tests = {
+  t1: function(){ go("mailto:" + toAddr()); },
+  t2: function(){ go(mailto({subject:"mailto 점검 T2 — %0D%0A", body:body2}, false)); },
+  t3: function(){ go(mailto({subject:"mailto 점검 T3 — %0A", body:body3}, true)); },
+  t4: function(){ go(mailto({subject:"mailto 점검 T4 — bcc", body:"bcc 반영 테스트입니다.", bcc:"bcc-check@example.com"}, false)); },
+  len500:  function(){ go(mailto({subject:"mailto 길이 500", body: longBody(500)}, false)); },
+  len1000: function(){ go(mailto({subject:"mailto 길이 1000", body: longBody(1000)}, false)); },
+  len2000: function(){ go(mailto({subject:"mailto 길이 2000", body: longBody(2000)}, false)); },
+  len4000: function(){ go(mailto({subject:"mailto 길이 4000", body: longBody(4000)}, false)); },
+  gmail: function(){
+    var u = "https://mail.google.com/mail/?view=cm&fs=1"
+      + "&to=" + encodeURIComponent(toAddr())
+      + "&su=" + encodeURIComponent("웹메일 테스트")
+      + "&body=" + encodeURIComponent(nl("웹메일(Gmail) 컴포즈 테스트 본문입니다.\nhttps://example.com"));
+    window.open(u, "_blank", "noopener");
+  },
+  outlook: function(){
+    var u = "https://outlook.office.com/mail/deeplink/compose"
+      + "?to=" + encodeURIComponent(toAddr())
+      + "&subject=" + encodeURIComponent("웹메일 테스트")
+      + "&body=" + encodeURIComponent(nl("웹메일(Outlook) 컴포즈 테스트 본문입니다.\nhttps://example.com"));
+    window.open(u, "_blank", "noopener");
+  },
+  naver: function(){
+    var u = "https://mail.naver.com/v2/folders/0/write"
+      + "?to=" + encodeURIComponent(toAddr())
+      + "&subject=" + encodeURIComponent("웹메일 테스트")
+      + "&body=" + encodeURIComponent(nl("네이버 메일 작성 테스트 본문입니다.\nhttps://example.com"));
+    window.open(u, "_blank", "noopener");
+  },
+  cptext: function(){
+    var el = document.querySelector('[data-e="cptext"]');
+    // iOS Safari: 클릭 핸들러 안에서 동기적으로 시작
+    var p = navigator.clipboard.writeText("클립보드 텍스트 복사 성공 — " + location.href);
+    p.then(function(){ el.textContent = "복사 완료 — 붙여넣어 확인하세요."; el.style.color = "var(--ok)"; })
+     .catch(function(err){ el.textContent = "실패: " + (err && err.message ? err.message : err); el.style.color = ""; });
+  },
+  cphtml: function(){
+    var el = document.querySelector('[data-e="cphtml"]');
+    el.textContent = "";
+    if (!navigator.clipboard || !window.ClipboardItem){
+      el.textContent = "이 브라우저는 ClipboardItem을 지원하지 않습니다: " + ua;
+      return;
+    }
+    var img = "https://upload.wikimedia.org/wikipedia/commons/4/47/PNG_transparency_demonstration_1.png";
+    var html = '<div style="font-family:sans-serif"><p><b>mailto 점검</b> — HTML 클립보드 테스트</p><p><img src="'+img+'" width="160" alt="test image"></p><p>' + location.href + '</p></div>';
+    var text = "mailto 점검 — HTML 클립보드 테스트 (이미지는 원본 페이지 확인)\n" + location.href;
+    try {
+      // iOS Safari: 클릭 핸들러 안에서 동기적으로 ClipboardItem 생성
+      var item = new ClipboardItem({
+        "text/html": new Blob([html], {type:"text/html"}),
+        "text/plain": new Blob([text], {type:"text/plain"})
+      });
+      var p = navigator.clipboard.write([item]);
+      p.then(function(){ el.textContent = "복사 완료 — 메일앱·문서에 붙여넣어 이미지 표시를 확인하세요."; el.style.color="var(--ok)"; })
+       .catch(function(err){ el.textContent = "복사 실패: " + (err && err.message ? err.message : err) + "\n(" + ua + ")"; });
+    } catch(err){
+      el.textContent = "ClipboardItem 생성 실패: " + (err && err.message ? err.message : err) + "\n(" + ua + ")";
+    }
+  }
+};
+
+function longBody(n){
+  // n자 본문 + 맨 끝 [END]
+  var chunk = "본문길이테스트";
+  var lines = [];
+  var total = 0;
+  while (total < n - 6){
+    lines.push(chunk);
+    total += chunk.length;
+  }
+  var s = lines.join("\n");
+  s = s.slice(0, Math.max(0, n - 6));
+  while (s.length < n - 5) s += "x";
+  return s + "\n[END]";
+}
+
+document.addEventListener("click", function(e){
+  var b = e.target.closest("button.run");
+  if (!b) return;
+  var t = b.getAttribute("data-t");
+  if (tests[t]) tests[t]();
+});
+
+// ── 전체 결과 마크다운 복사 ───────────────────────────────────
+document.getElementById("copyall").addEventListener("click", function(){
+  var labels = {
+    t1:"T1 mailto 기본", t2:"T2 주소+제목+본문(%0D%0A)", t3:"T3 본문(%0A만)", t4:"T4 bcc 포함",
+    len:"본문 길이(500~4000)", gmail:"Gmail 웹", outlook:"Outlook 웹", naver:"네이버 메일",
+    cptext:"클립보드 텍스트", cphtml:"클립보드 HTML+이미지"
+  };
+  var md = "| 테스트 | 결과 | 메모 |\n|---|---|---|\n";
+  for (var k in labels){
+    var st = state[k] && state[k].v ? state[k].v : "-";
+    var memo = "";
+    var ta = document.querySelector('[data-m="'+k+'"]');
+    if (ta) memo = ta.value.replace(/\|/g,"\\|").replace(/\n/g," ");
+    md += "| " + labels[k] + " | " + st + " | " + memo + " |\n";
+  }
+  md += "\n환경: " + proto.replace(":","") + " | secure=" + secure + " | " + platform + " | " + (window.innerWidth+"×"+window.innerHeight) + " @dpr " + (window.devicePixelRatio||1) + "\nUA: " + ua + "\n";
+  var el = document.querySelector('[data-e="cptext"]');
+  var done = function(){ toast("결과 복사 완료"); };
+  var fail = function(err){ toast("복사 실패: " + (err && err.message ? err.message : err)); };
+  // iOS: 클릭 핸들러 내 동기 시작
+  var p = navigator.clipboard.writeText(md);
+  p.then(done).catch(fail);
+});
+
+function toast(msg){
+  var t = document.createElement("div");
+  t.className = "toast";
+  t.textContent = msg;
+  t.style.opacity = "1";
+  document.body.appendChild(t);
+  setTimeout(function(){ t.style.opacity = "0"; }, 1600);
+  setTimeout(function(){ t.remove(); }, 2000);
+}
+})();
+</script>
+</body>
+</html>
