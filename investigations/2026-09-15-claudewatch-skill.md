@@ -75,7 +75,36 @@
 에이전트가 이 index.json만 받으면 프레임을 비전으로 읽어 보고서를 쓰는 구조 —
 릴스가 약속한 워크플로우와 동일하며, 실제 동작을 확인했다.
 
-## 5. Hermes로 옮긴다면 (확장 제안)
+## 5. 관련 스킬 생태계 조사 (2026-09-15)
+
+### 외부 공개 스킬 (Claude/에이전트용)
+
+| 스킬 | 저장소 | 별점 | 특징 |
+|---|---|---|---|
+| claude-video (/watch) | github.com/bradautomates/claude-video | ★17.2k | 사실상 표준. yt-dlp+ffmpeg 파이프라인, 장면전환 프레임+Whisper API(Groq 우선, OpenAI 폴백), 자동 프레임 예산(상한 100장/2fps), focused mode(--start/--end), Claude Code/Codex/agentskills 3중 매니페스트, pytest 37개 |
+| watch-video-skill | github.com/Newuxtreme/watch-video-skill | ★67 | claude-video 엔진을 vendoring한 래퍼. /watch-video 슬래시 전용 트리거(토큰 소모 방지 가드), 구조화 노트 파일(TL;DR/Timeline/Key quotes/Visual notes) 영속 저장, 클린업 워크플로우 |
+| claude-watch | github.com/taoufik123-collab/claude-watch | - | 장면전환 프레임+자막+구조화 리포트에 "0-10초 훅 현미경"(릴스 도입부 집중 분석), Obsidian 자동 저장 |
+| claude-code-video-toolkit | github.com/digitalsamba/claude-code-video-toolkit | - | 시청이 아니라 제작 지향: Remotion, ElevenLabs, FFmpeg, Playwright를 묶은 AI 네이티브 영상 제작 워크스페이스 |
+| watch-skill (DeepWatch) | github.com/oxbshw/watch-skill | ★376 | 확장판: 영상·오디오·화면 녹화를 타임스탬프 검색 가능한 "증거"로 전환, MCP/CLI/REST 제공, 결정적 검증 계약(proof) 개념, PyPI 배포 |
+| video-shotcraft 외 | moclaw.ai 랭킹 참조 | - | 2026년 8월 기준 영상 카테고리가 성장 최상위 — 시네마틱 제품 클립, 영상 거버넌스, 손그림 쇼츠 스킬 등 제작 쪽으로 확산 중 |
+
+릴스의 `claudewatch`는 이 생태계의 바리에이션으로 판단됨. 데모 화면의 구조(장면전환 프레임+자막+HTML 리포트)는 claude-video/watch-video-skill 계열과 동일한 패턴.
+
+### 설계 트렌드 시사점
+
+1. **프레임 예산 자동화가 표준**: 고정 fps가 아니라 길이 기반 자동 스케일 + 하드캡(100장/2fps)이 업계 기본. 토큰 비용 폭발 방지가 1차 관심사.
+2. **Whisper는 로컬→API 이동**: 로컬 whisper 설치 고통 때문에 Groq/OpenAI API(클라우드 전사)가 기본이 되고, 순수 stdlib HTTP로 SDK 의존 제거.
+3. **트리거 가드**: 긴 영상의 우발적 토큰 소모를 막으려고 슬래시 명령 전용 트리거를 쓰는 패턴 등장 — "에이전트가 스스로 판단해 호출"의 부작용에 대한 반성형 설계.
+4. **산출물의 영속화**: 채팅 답변이 아니라 구조화 노트/리포트 파일로 남기는 것이 차별점이 됨.
+5. **검증 가능성**: watch-skill의 "증거+검증 계약"처럼 영상 분석을 관측가능성(observability)으로 승격하는 방향도 있음.
+
+### 이 서버(Hermes)에 있는 유사 스킬
+
+- `media/video-content-analysis` (agentarch 프로필): 페이스북/인스타 릴스 링크에서 og 메타→lookaside crawler mp4 추출→프레임+자막 절차 스킬. 이번 조사에서 실제로 사용·검증됨.
+- `media/video-segment-capture` (content-creator 프로필), `media/youtube-content`, `media/songsee` 등이 media 카테고리에 존재.
+- 차이: 위 스킬들은 "절차 지식"만 있고 프레임 추출 파이프라인 자체는 매번 조립. claude-video처럼 테스트된 실행기(scripts/)를 포함한 자기완결형으로 강화할 여지가 있음.
+
+## 6. Hermes로 옮긴다면 (확장 제안)
 
 - 동일 파이프라인을 Hermes 스킬(`video-watch`)로 포팅 가능:
   SKILL.md에 "영상 분석 절차" 기술 + scripts/analyze_video.py 포함.
