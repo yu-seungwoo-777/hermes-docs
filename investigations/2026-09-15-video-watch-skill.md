@@ -1,9 +1,9 @@
-# youtube-watch 스킬 설계 문서 (v1.0)
+# video-watch 스킬 설계 문서 (v1.1 — uass/0.3 준수)
 
 - 일자: 2026-09-15
 - 작성: agentarch (에이전틱 코딩 설계 자문)
 - 목적: 승우님이 만든 **유튜브 영상 분석 스킬**을 4개 하네스(Claude Code, Codex CLI, OpenCode, Hermes)에 이식하기 위한 설계 표준
-- 이력: v0.1~v0.2 "범용 에이전트 스킬 표준안"을 단일 목적(유튜브 분석)으로 축소 개편. 범용 표준 문서는 폐기.
+- 이력: v0.1~v0.2 "범용 에이전트 스킬 표준안"을 단일 목적(영상 분석)으로 축소 개편 → v1.1 승우님 v0.3 개정안(uass/0.3) 채택으로 일반 영상 대상으로 재일반화. 표준안 본체는 2026-09-15-universal-skill-spec-v0.3.md
 - 범위: **자작 스킬 이식 전용** — 서드파티 스킬 도입(남의 스킬이 시키는 셸 명령을 내 에이전트가 실행하는 문제)은 범위 밖.
 
 ---
@@ -57,12 +57,12 @@ faster-whisper 자막 → index.json)을 실제 릴스(28.5초)로 돌려 프레
 
 ```yaml
 ---
-name: youtube-watch
+name: video-watch
 description: >                 # 트리거 조건이 앞 57자 안에 자족
   Analyze YouTube videos into frames, transcript, and Korean cut-table reports.
 license: MIT
 metadata:
-  spec: youtube-watch/1.0
+  spec: video-watch/1.0
   output-contract: persona     # §3 사용 표시
   selftest: scripts/analyze_video.py --selftest
 ---
@@ -78,7 +78,7 @@ description 하나뿐(§5.2)이므로 이 제약이 스킬에서 가장 비싼 �
 ### 2.2 본문 섹션
 
 ```
-# youtube-watch Skill
+# video-watch Skill
 ## When to Use        — 유튜브 링크 분석 요청. 역트리거: 실시간 시청, 편집 작업
 ## Prerequisites      — yt-dlp(≥2026.01), ffmpeg, faster-whisper (버전 명시만.
                         설치 방법은 쓰지 않는다 — 설치자 §4 소관)
@@ -97,7 +97,7 @@ description 하나뿐(§5.2)이므로 이 제약이 스킬에서 가장 비싼 �
 ### 2.3 폴더 구조 (자기완결)
 
 ```
-youtube-watch/
+video-watch/
 ├── SKILL.md
 ├── scripts/
 │   └── analyze_video.py    # 파이프라인 실행기 + selftest
@@ -180,7 +180,7 @@ scripts 분리 배포 시 비-Claude 호스트에서 dead on arrival).
 1. **하네스 감지**: `~/.hermes/`→Hermes, `~/.claude/`→Claude Code,
    `~/.codex/`→Codex CLI, `~/.config/opencode/`→OpenCode. 복수 감지 시 사용자에게 문의.
 2. **경로 결정**: §5.1 표 조회. 실측 열이 "미실측"이면 복사 전 실제 디렉토리 확인.
-3. **복사**: youtube-watch/ 폴더 전체. 폴더명=frontmatter name.
+3. **복사**: video-watch/ 폴더 전체. 폴더명=frontmatter name.
    (Hermes: `hermes skills install <path>` — 보안 스캔 경유)
 4. **의존성 설치 + 버전 보고**: yt-dlp/ffmpeg/faster-whisper 설치 후 `--version`
    출력을 그대로 보고 ("설치했다" ✗, 출력 증명 ○).
@@ -200,11 +200,11 @@ ffmpeg, 음성인식 도구 버전) 확인해서 결과 알려줘" — 에이전
 
 | 하네스 | 전역 | 프로젝트 | 출처 신뢰도 |
 |---|---|---|---|
-| Claude Code | `~/.claude/skills/youtube-watch/` | `.claude/skills/` | 공식 문서 (미실측) |
-| Codex CLI | `~/.codex/skills/youtube-watch/` | `.codex/skills/` | **서드파티 가이드 (미실측)** — 설치 전 실측 필수 |
-| OpenCode | `~/.config/opencode/skills/youtube-watch/` | `.opencode/skills/` | 공식 문서 (2026-09 확인) |
+| Claude Code | `~/.claude/skills/video-watch/` | `.claude/skills/` | 공식 문서 (미실측) |
+| Codex CLI | `~/.codex/skills/video-watch/` | `.codex/skills/` | **서드파티 가이드 (미실측)** — 설치 전 실측 필수 |
+| OpenCode | `~/.config/opencode/skills/video-watch/` | `.opencode/skills/` | 공식 문서 (2026-09 확인) |
 | OpenCode (호환) | `~/.agents/skills/`도 읽음 | `.agents/skills/`, `.claude/skills/`도 읽음 | 공식 문서 |
-| Hermes | `~/.hermes/skills/<category>/youtube-watch/` | `.hermes/skills/`, `.agents/skills/` | 공식 문서 + **본 서버 실측** |
+| Hermes | `~/.hermes/skills/<category>/video-watch/` | `.hermes/skills/`, `.agents/skills/` | 공식 문서 + **본 서버 실측** |
 
 - 경로가 틀린 칸이 있으면 설치 루프 전체가 깨지므로 출처 신뢰도를 반드시 확인.
 - `.agents/skills/`는 OpenCode+Hermes 공용 경로 (양쪽 공식 문서 확인) — 단일 복사로
@@ -215,7 +215,7 @@ ffmpeg, 음성인식 도구 버전) 확인해서 결과 알려줘" — 에이전
 
 | 하네스 | 트리거 |
 |---|---|
-| Claude Code | description 매칭 (자율) 또는 /youtube-watch |
+| Claude Code | description 매칭 (자율) 또는 /video-watch |
 | Codex CLI | description 매칭 (자율) |
 | OpenCode | description 매칭 + permission 제어 가능 |
 | Hermes | description 매칭 (자율) |
@@ -235,30 +235,48 @@ description이 사실상 유일한 트리거 인터페이스 → §2.1의 57자 
 
 ---
 
-## 6. 구현 현황 (v1.1 — 전 항목 충족, 2026-09-15 실측)
+## 6. 구현 현황 (v1.1 — uass/0.3 §7 준수 표 8건 해소, 2026-09-15 실측)
 
-**스킬 패키지 (youtube-watch/)**:
-- SKILL.md — 코어 본문 (프론트매터에 selftest 포인터 포함)
-- scripts/analyze_video.py — 파이프라인 + --selftest
-- templates/cut-table.md — 컷별 4칸 표 스키마 (준수 조건으로 동봉 완료)
+**스킬 패키지 (video-watch/)**:
+- SKILL.md — uass/0.3 코어 (name: video-watch로 일반화, ## Scope 신설,
+  입력 출처 가드, 순수 셸 How to Run, 검증 범위 명시)
+- scripts/analyze_video.py — 파이프라인 + --selftest (종료 코드 0/1/2) +
+  프레임 타임스탬프 부여·정렬·중복 제거 + 출처·라이선스 상단 주석
+- templates/cut-table.md — 컷별 4칸 표 (조인 기준축 명시)
 
-**실측 검증 결과**:
-1. selftest: `--selftest` → ffmpeg 합성 3초 클립 → 파이프라인 전체 →
-   **PASS (exit 0)**, 프레임 3장 + transcript + index.json 생성 확인. 네트워크 불요.
-2. 유튜브 종단 시험: 실링크(youtube.com/watch?v=jNQXAC9IVRw, 19초) →
-   yt-dlp 다운로드 → 프레임 6장 + 한국어 타임스탬프 자막([0000.1s] 형식) 추출 성공.
-3. 비전 조인 검증: 프레임 판독(동물원 청년+코끼리)과 자막("엘리핀")이
-   시간축에서 정확히 일치 — 컷별 표의 데이터 기반 확인.
-4. 페이스북 릴스 획득 절차(og 메타 → lookaside crawler mp4)도 기존 실측 유지 —
-   유튜브 외 소스 확장 근거.
+**uass/0.3 §7 준수 표 해소 내역**:
 
-youtube-watch는 본 설계 문서의 첫 준수 사례이자 실행 가능성이 실증됐다.
+| # | 항목 | 해소 |
+|---|---|---|
+| 1 | 프레임 타임스탬프 + 정렬·중복 제거 | showinfo pts_time 파싱 → 파일명 cut_NN_tSS.SSs.jpg + index.json t 값, 0.4초 병합 정렬 |
+| 2 | selftest 종료 코드 0/1/2 + preflight | EXIT_OK/EXIT_ENV/EXIT_SKILL 분리, check_env() 버전 출력 |
+| 3 | selftest 숨은 모델 다운로드 해소 | selftest는 whisper "로딩"만 확인, 모델 로드는 본 실행으로 이동 — 네트워크 불요 성립 |
+| 4 | ## Scope 4항목 | SKILL.md에 신설 (네트워크/쓰기/바이너리/설치시도 + 가중치 ~500MB 명시) |
+| 5 | description 실제 지원 범위 일치 + 일반화 | 스킬명 video-watch, description에 "URL or local file" 명시 |
+| 6 | 입력 출처 가드 | Pitfalls 최상단 배치 |
+| 7 | 순수 셸 How to Run | terminal(command=...) 표기 제거 |
+| 8 | scripts/ 출처·라이선스 주석 | 파일 상단 2줄 추가 |
+
+**실측 검증 결과 (수정 후 재시험)**:
+1. selftest: **PASS (exit 0)** — preflight 3도구 버전 출력(yt-dlp 2026.08.19,
+   ffmpeg 6.1, ffprobe 6.1) + 합성 클립 배선 + whisper 로딩 + index.json. 네트워크 불요.
+   종료 코드 1 경로도 실측: preflight 버그 수정 과정에서 FAIL(exit 1)이 정상 동작함을 확인.
+2. 유튜브 종단: 실링크(19초) → 컷 6개(파일명에 t 값 부여 확인: cut_01_t0000.00s ~
+   cut_04_t0009.51s) + 한국어 타임스탬프 자막.
+3. 비전 조인: 프레임 판독(동물원+코끼리)과 자막("엘리핀") 일치 — 이전 실측 유지.
+4. preflight 실측에서 발견한 도구별 차이: ffmpeg은 `--version`을 exit 8로 거부
+   (`-version`만 허용), yt-dlp는 stdout에 버전 문자열만 출력. check_env에 반영 —
+   "환경 미비 오판"이 실제로 일어날 수 있음을 보여준 사례로 §4.3 종료 코드 규약의
+   가치를 실증.
+
+video-watch는 uass/0.3의 첫 준수 사례다.
 
 ---
 
 ## 7. 미해결 과제
 
-1. Codex 설치 경로 실측 (§5.1 — 유일한 서드파티 출처 칸)
-2. 타 하네스 description 절단 길이 실측 (§2.1 — 57자가 보수적 상한인지 확인)
-3. Codex 비전 능력 실측 (§5.3)
-4. 준수 검증 스크립트 (frontmatter + 필수 섹션 + selftest 존재 체크)
+1. Codex 설치 경로 실측 (uass/0.3 §5.1 — 유일한 서드파티 출처 칸)
+2. 타 하네스 description 절단 길이 실측 (uass/0.3 §2.1 — 57자 규칙은 v0.3에서 보류됨)
+3. Codex 비전 능력 실측 (uass/0.3 §5.3)
+4. 준수 검증 스크립트 (frontmatter + ## Scope 4항목 + selftest 존재 체크)
+5. `~/.agents/skills/` 공용 경로 실측 (uass/0.3 §5.1 최우선 항목)
