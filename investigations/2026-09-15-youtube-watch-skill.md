@@ -235,21 +235,24 @@ description이 사실상 유일한 트리거 인터페이스 → §2.1의 57자 
 
 ---
 
-## 6. 구현 현황 (검증된 기반)
+## 6. 구현 현황 (v1.1 — 전 항목 충족, 2026-09-15 실측)
 
-**완료 (본 서버 실측)**:
-- analyze_video.py: yt-dlp → ffmpeg 장면전환 프레임(폴백 균등 샘플) →
-  faster-whisper 자막 → index.json — 릴스 원본 28.5초로 프레임 7장+자막 추출 성공
-- 페이스북 릴스 획득 절차(og 메타 → lookaside crawler mp4)도 실측 완료 —
-  유튜브 외 소스 확장의 근거
+**스킬 패키지 (youtube-watch/)**:
+- SKILL.md — 코어 본문 (프론트매터에 selftest 포인터 포함)
+- scripts/analyze_video.py — 파이프라인 + --selftest
+- templates/cut-table.md — 컷별 4칸 표 스키마 (준수 조건으로 동봉 완료)
 
-**미충족 (v1.1 과제)**:
-- selftest (§2.4) — ffmpeg 합성 클립 기반, 네트워크 불요
-- templates/cut-table.md 동봉
-- frontmatter selftest 포인터
-- 유튜브 실링크 종단 시험 (현재 검증은 페이스북 릴스 소스)
+**실측 검증 결과**:
+1. selftest: `--selftest` → ffmpeg 합성 3초 클립 → 파이프라인 전체 →
+   **PASS (exit 0)**, 프레임 3장 + transcript + index.json 생성 확인. 네트워크 불요.
+2. 유튜브 종단 시험: 실링크(youtube.com/watch?v=jNQXAC9IVRw, 19초) →
+   yt-dlp 다운로드 → 프레임 6장 + 한국어 타임스탬프 자막([0000.1s] 형식) 추출 성공.
+3. 비전 조인 검증: 프레임 판독(동물원 청년+코끼리)과 자막("엘리핀")이
+   시간축에서 정확히 일치 — 컷별 표의 데이터 기반 확인.
+4. 페이스북 릴스 획득 절차(og 메타 → lookaside crawler mp4)도 기존 실측 유지 —
+   유튜브 외 소스 확장 근거.
 
-완료 시 youtube-watch는 본 설계의 첫 준수 사례이자 실행 가능성 증명이 된다.
+youtube-watch는 본 설계 문서의 첫 준수 사례이자 실행 가능성이 실증됐다.
 
 ---
 
