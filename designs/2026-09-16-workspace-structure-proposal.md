@@ -173,7 +173,7 @@ outputs/YYYY-MM-DD-<주제>/ 에는 반드시 README.md를 동봉한다:
 
 ---
 
-## 8. 성공 기준 (2주 후 점검)
+## 9. 성공 기준 (2주 후 점검)
 
 - outputs 밖에 새 산출물이 생기지 않음 (`/root` 직하위 find로 검증)
 - 모든 outputs 하위 폴더에 README.md 존재
