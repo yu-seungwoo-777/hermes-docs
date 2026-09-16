@@ -145,7 +145,23 @@ outputs/YYYY-MM-DD-<주제>/ 에는 반드시 README.md를 동봉한다:
 
 ---
 
-## 7. 트레이드오프·대안 검토
+## 7. 변형 구조 평가 (2026-09-16 승우님 제안안)
+
+제안: `/home/hermes/{workspace/{projects,research,drafts}, outputs/{YYYY-MM-DD/}}`
+
+| 요소 | 판정 | 사유 |
+|---|---|---|
+| `/home/hermes` | 조건부 채택 | 전용 사용자 분리를 계획하면 최적. 현재 Hermes는 root 실행이므로 분리 계획이 없으면 `/root/workspace`가 실체에 맞음 (사용자 분리 = 인프라 변경, 오케스트레이터 결정 사항) |
+| workspace 2분리 뼈대 | ✅ 채택 (본 설계와 동일) | — |
+| projects/research/drafts 분류 | ❌ 기각 → `work/YYYY-MM-DD-<주제>/` 통합 | 태스크마다 분류 판단 강요 + 시간이 지나며 재분류 이동 발생. 날짜+주제는 판단 없이 기계 적용. research는 inbox와 역할 겹침 |
+| `outputs/YYYY-MM-DD/` 날짜-only | ⚠️ 보정 → `YYYY-MM-DD-<주제>/` | 같은 날 이질적 태스크 결과물이 한 폴더에 혼재하는 실패 모드. Syncthing 선택 동기화(주제 단위) 불가. 주제 접미사 1단계로 해소 |
+| inbox·archive 부재 | ❌ 보강 필요 | inbox 부재 = document_cache 24h TTL 갭 방치. archive 부재 = 삭제 금지 원칙의 이동처 없음 (Syncthing 삭제 전파 문제) |
+
+결론: 뼈대(작업/결과물 2분리, outputs 단일 창구)는 채택하되 분류 택소노미와 날짜-only outputs 두 지점을 본 설계 기준으로 보정.
+
+---
+
+## 8. 트레이드오프·대안 검토
 
 | 대안 | 기각/채택 사유 |
 |---|---|
