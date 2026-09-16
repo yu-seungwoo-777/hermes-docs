@@ -7,7 +7,9 @@ GitHub에서 열람·추적하기 위한 단일 저장소다.
 
 ```
 /root/outputs/reports/
-├── daily/          일일 보고 (YYYY-MM-DD-<프로필>.md, UTF-8 with BOM)
+├── daily/
+│   ├── YYYY-MM-DD-orchestrator.md   오케스트레이터 취합 보고 (사용자 전달분, 상위)
+│   └── archive/<프로필>/YYYY-MM-DD.md  워커 일일 보고 (기록용)
 └── README.md       이 파일
 ```
 
