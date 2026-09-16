@@ -1,12 +1,12 @@
 ﻿# hermes-docs — Hermes 부대 문서·산출물 공용 저장소
 
-서버 `/root/reports/`와 직결된 프라이빗 문서 공간. 생성된 보고서·설계 산출물·사고 기록을
+서버 `/root/outputs/reports/`와 직결된 프라이빗 문서 공간. 생성된 보고서·설계 산출물·사고 기록을
 GitHub에서 열람·추적하기 위한 단일 저장소다.
 
 ## 구조
 
 ```
-/root/reports/  ← 이 저장소의 로컬 워킹 트리
+/root/outputs/reports/  ← 이 저장소의 로컬 워킹 트리
 ├── daily/          일일 보고 (YYYY-MM-DD-<프로필>.md, UTF-8 with BOM)
 ├── security/       보안 관련 기록
 ├── investigations/ 조사·분석 결과 보고서 (YYYY-MM-DD-<주제>.md, UTF-8 with BOM)
