@@ -6,12 +6,8 @@ GitHub에서 열람·추적하기 위한 단일 저장소다.
 ## 구조
 
 ```
-/root/outputs/reports/  ← 이 저장소의 로컬 워킹 트리
+/root/outputs/reports/
 ├── daily/          일일 보고 (YYYY-MM-DD-<프로필>.md, UTF-8 with BOM)
-├── security/       보안 관련 기록
-├── investigations/ 조사·분석 결과 보고서 (YYYY-MM-DD-<주제>.md, UTF-8 with BOM)
-├── designs/        설계 문서 (아키텍처·워크플로우 스펙)
-├── incidents/      장애·사고 기록
 └── README.md       이 파일
 ```
 
